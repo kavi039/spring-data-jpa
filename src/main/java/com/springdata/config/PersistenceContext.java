@@ -1,8 +1,13 @@
 package com.springdata.config;
 
 
+import com.springdata.demo.AuditingDateTimeProvider;
+import com.springdata.service.CurrentDateTimeService;
+import com.springdata.service.DateTimeService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.auditing.DateTimeProvider;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -14,6 +19,7 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
+@EnableJpaAuditing(dateTimeProviderRef = "dateTimeProvider")
 @EnableJpaRepositories("com.springdata.repositories")
 public class PersistenceContext {
 
@@ -23,6 +29,7 @@ public class PersistenceContext {
         driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
         driverManagerDataSource.setUrl("jdbc:mysql://localhost:3306/poc");
         driverManagerDataSource.setUsername("root");
+        driverManagerDataSource.setPassword("igdefault");
         return driverManagerDataSource;
     }
 
@@ -47,5 +54,16 @@ public class PersistenceContext {
         JpaTransactionManager transactionManager = new JpaTransactionManager();
         transactionManager.setEntityManagerFactory(entityManagerFactory);
         return transactionManager;
+    }
+
+
+    @Bean
+    DateTimeService currentTimeDateTimeService() {
+        return new CurrentDateTimeService();
+    }
+
+    @Bean
+    DateTimeProvider dateTimeProvider(DateTimeService dateTimeService) {
+        return new AuditingDateTimeProvider(dateTimeService);
     }
 }
